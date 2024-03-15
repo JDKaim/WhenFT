@@ -1,0 +1,21 @@
+<h1>Home Page</h1>
+@if (whenFT$ | async; as whenFT) {
+<p-card [header]="'Current NFTs'" class="w-30rem">
+  @for(nft of whenFT.nfts; track $index) {
+  <div class="flex gap-3 align-items-center mb-3">
+    <p-button
+      size="small"
+      icon="pi pi-eye"
+      severity="success"
+      [routerLink]="['/', 'nfts', nft.id]"
+    />
+    <div class="text-center text-600 mb-3">
+      {{ nft.id }}
+    </div>
+  </div>
+  } @empty {
+  <div>No Games.</div>
+  }
+</p-card>
+
+}

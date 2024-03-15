@@ -1,0 +1,13 @@
+@if (nft$ | async; as nft) {
+  <h1>{{ nft.id }}</h1>
+  @if (nft) {
+    @if (nft.owner) {
+      <h3>Owner: {{ nft.owner }}</h3>
+    } @else {
+      <h3>No Owner</h3>
+    } 
+    <nft [id]="nft.id"></nft>
+  }
+} @else {
+  <h1>NFT is not found.</h1>
+}

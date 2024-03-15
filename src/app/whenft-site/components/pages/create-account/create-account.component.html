@@ -1,0 +1,83 @@
+<div class="flex gap-3">
+  <p-card header="Create Account" class="w-30rem">
+    <form [formGroup]="form" (ngSubmit)="(form.valid)">
+      <div class="p-fluid">
+        <div class="field">
+          <label htmlFor="id">ID</label>
+          <input
+            pInputText
+            id="id"
+            formControlName="id"
+            placeholder="Enter ID"
+            [maxlength]="4"
+            [minlength]="1"
+          />
+        </div>
+        <div class="field">
+          <label htmlFor="name">Username</label>
+          <input
+            pInputText
+            id="name"
+            formControlName="name"
+            placeholder="Enter Username"
+            [maxlength]="15"
+            [minlength]="5"
+          />
+        </div>
+        <div class="field">
+          <label htmlFor="email">Email</label>
+          <input
+            pInputText
+            id="email"
+            formControlName="email"
+            placeholder="Enter Email"
+            [maxlength]="30"
+            [minlength]="4"
+          />
+        </div>
+      </div>
+    </form>
+
+    @if(errors.length) {
+    <p-messages [(value)]="errors" [enableService]="false"></p-messages>
+    }
+
+    <ng-template pTemplate="footer">
+      <div class="flex justify-content-end">
+        <p-button
+          label="Save"
+          icon="pi pi-check"
+          severity="success"
+          [disabled]="!form.valid || !form.dirty"
+          (onClick)="createAccountClicked()"
+        />
+        <p-button
+          label="Cancel"
+          icon="pi pi-times"
+          severity="danger"
+          class="ml-2"
+          [routerLink]="['/']"
+        />
+      </div>
+    </ng-template>
+  </p-card>
+
+  <!-- <p-card header="Current Players" class="w-15rem">
+    @if (players$ | async; as players) {
+      <ul>
+        @for(player of players; track $index) {
+        <li><a [routerLink]="['/', 'players', player.id]">{{ player.name }}</a></li>
+        }
+      </ul>
+      }
+  </p-card>
+  <p-card header="Current Teams" class="w-15rem">
+    @if (teams$ | async; as teams) {
+      <ul>
+        @for(team of teams; track $index) {
+        <li><a [routerLink]="['/', 'teams', team.id]">{{ team.id }} - {{ team.name }}</a></li>
+        }
+      </ul>
+      }
+  </p-card> -->
+</div>

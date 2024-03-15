@@ -1,0 +1,37 @@
+@if (account$ | async; as account) {
+
+<div class="flex gap-3 mb-3">
+  <p-card class="w-30rem align-items-center">
+    <div class="p-card-title text-center align-items-center">View Account</div>
+    <div class="text-center font-semibold text-900">{{ account.name }}</div>
+    <div class="text-center text-600 mb-3">Account ID: {{ account.id }}</div>
+    <div class="text-center">
+      <p-button
+        size="small"
+        class="mr-2"
+        icon="pi pi-pencil"
+        severity="primary"
+        [routerLink]="['/', 'edit-account', account.id]"
+      />
+    </div>
+  </p-card>
+
+  <p-card
+    header="Portfolio"
+    class="w-30rem"
+  >
+    @if (nfts$ | async; as nfts) { @for(nft of nfts; track
+    $index) {
+    <div class="flex gap-2 align-items-center mb-1">
+      <a [routerLink]="['/', 'nfts', nft.id]">{{ nft.id }}</a>
+    </div>
+    } @empty {
+    <div>No NFTs.</div>
+    }}
+  </p-card>
+</div>
+}
+@else {
+  <!-- <p-progressBar mode="indeterminate"></p-progressBar> -->
+  <h1>Account is not found.</h1>
+}
