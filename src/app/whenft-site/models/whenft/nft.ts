@@ -6,4 +6,5 @@ export interface NFT {
   id: number;
   rows: Array<Row>;
   owner?: Account;
+  public: boolean;
 }

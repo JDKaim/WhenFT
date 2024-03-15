@@ -1,26 +1,17 @@
+// This is the main client-based service. With connection to the backend it will
+// be updated and probably become obsolete in favor of individual services.
+
 import { Injectable } from '@angular/core';
 import {
-  Observable,
   ReplaySubject,
-  combineLatest,
   map,
   of,
-  switchMap,
-  take
+  switchMap
 } from 'rxjs';
-import { CreateGame } from '../models/goalpost/create-game';
-import { CreatePlay } from '../models/goalpost/create-play';
-import { CreatePlayer } from '../models/goalpost/create-player';
-import { EditGame } from '../models/goalpost/edit-game';
-import { EditPlayer } from '../models/goalpost/edit-player';
-import { EditTeam } from '../models/goalpost/edit-team';
-import { PlayStats } from '../models/goalpost/play-stats';
-import { Player } from '../models/goalpost/player';
 import { CreateAccount } from '../models/whenft/account/create-account';
-import { Account } from '../models/whenft/account/account';
+import { EditAccount } from '../models/whenft/account/edit-account';
 import { NFT } from '../models/whenft/nft';
 import { WhenFTModel } from '../models/whenft/whenft-model';
-import { EditAccount } from '../models/whenft/account/edit-account';
 
 // NOTE: This service is overly complicated because of the way it's dealing with local data. If dealing with
 // a proper database or backend service this would probablyend up a bit cleaner.
@@ -41,115 +32,58 @@ export class WhenFTService {
     this.watchWhenFt$().subscribe({ next: (whenFT) => this.#saveData(whenFT) });
   }
 
+  // Observable<WhenFTModel>
+  // Returns an observable of the overarching WhenFTModel.
   watchWhenFt$() {
     return this.#subject.asObservable();
   }
-
-  // watchPlayStats$(id: string): Observable<Array<PlayStats>> {
-  //   return this.watchPlays$(id).pipe(
-  //     switchMap((plays) => {
-  //       if (!plays?.length) {
-  //         return of([]);
-  //       }
-  //       const playerArray = Array.from(
-  //         new Set(
-  //           plays
-  //             .map((play) => [
-  //               play.passer,
-  //               play.rusher,
-  //               play.receiver,
-  //               play.flagPuller,
-  //               play.turnoverPlayer,
-  //             ])
-  //             .flat()
-  //             .filter((playerId) => playerId)
-  //         ).values()
-  //       ).map((playerId) => this.watchPlayer$(playerId!));
-  //       const observables = [
-  //         this.watchTeam$(plays[0].offensiveTeamId),
-  //         this.watchTeam$(plays[0].defensiveTeamId),
-  //       ];
-  //       return combineLatest([
-  //         combineLatest(observables),
-  //         combineLatest(playerArray),
-  //       ]).pipe(
-  //         take(1),
-  //         map((responses) => {
-  //           const teamMap = new Map(
-  //             responses[0].map((team) => [team!.id, team!])
-  //           );
-  //           const playerMap = new Map(
-  //             responses[1].map((player) => [player!.id, player!])
-  //           );
-  //           return plays.map((play) => {
-  //             switch (play.type) {
-  //               case 'rushing':
-  //               case 'one-point-rush':
-  //               case 'two-point-rush':
-  //                 return PlayStats.createRush(
-  //                   play,
-  //                   teamMap.get(play.offensiveTeamId)!,
-  //                   teamMap.get(play.defensiveTeamId)!,
-  //                   playerMap.get(play.rusher!)!,
-  //                   play.flagPuller
-  //                     ? playerMap.get(play.flagPuller)
-  //                     : undefined,
-  //                   play.turnoverPlayer
-  //                     ? playerMap.get(play.turnoverPlayer)
-  //                     : undefined
-  //                 );
-  //               case 'passing':
-  //               case 'one-point-pass':
-  //               case 'two-point-pass':
-  //                 return PlayStats.createPass(
-  //                   play,
-  //                   teamMap.get(play.offensiveTeamId)!,
-  //                   teamMap.get(play.defensiveTeamId)!,
-  //                   playerMap.get(play.passer!)!,
-  //                   playerMap.get(play.receiver!)!,
-  //                   play.flagPuller
-  //                     ? playerMap.get(play.flagPuller)
-  //                     : undefined,
-  //                   play.turnoverPlayer
-  //                     ? playerMap.get(play.turnoverPlayer)
-  //                     : undefined
-  //                 );
-  //               default:
-  //                 throw new Error('Unsupported play type.');
-  //             }
-  //           });
-  //         })
-  //       );
-  //     })
-  //   );
-  // }
-
+  
+  // Observable<Account[]>
+  // Returns observable of all existing accounts in an observable.
   watchAccounts$() {
     return this.watchWhenFt$().pipe(map((whenFT) => whenFT.accounts));
   }
 
+  // Observable<Account | undefined>
+  // Returns observable of specific account found by id.
   watchAccount$(id: number) {
     return this.watchAccounts$().pipe(
       map((accounts) => accounts.find((account) => account.id === id))
     );
   }
 
+  // Observable<NFT[]>
+  // Returns observable of all existing NFTs.
   watchNFTs$() {
     return this.watchWhenFt$().pipe(map((whenFT) => whenFT.nfts));
   }
 
+  // Observable<NFT | undefined>
+  // Returns observable of specific NFT found by id.
   watchNFT$(id: number) {
     return this.watchNFTs$().pipe(
       map((nfts) => nfts.find((nft) => nft.id === id))
     );
   }
 
+  // Observable<NFT[]>
+  // Returns observable of all NFTs owned by account specified by id.
   watchAccountNFTs$(id: number) {
     return this.watchNFTs$().pipe(
       map((nfts) => nfts.filter((nft) => nft.owner?.id === id))
     );
   }
 
+  // Observable<NFT[]>
+  // Returns observable of all public NFTs owned by account specified by id.
+  watchAccountPublicNFTs$(id: number) {
+    return this.watchNFTs$().pipe(
+      map((nfts) => nfts.filter((nft) => nft.owner?.id === id && nft.public))
+    );
+  }
+
+  // Observable<Account | undefined>
+  // Returns observable of account which owns NFT specified by id.
   watchNFTOwner$(id: number) {
     return this.watchNFT$(id).pipe(switchMap((nft) => {
       if (!nft) {
@@ -159,6 +93,8 @@ export class WhenFTService {
     }));
   }
 
+  // void
+  // Saves WhenFTModel to local storage.
   #saveData(whenFT: WhenFTModel) {
     localStorage.setItem(
       WhenFTService.WhenFTStorageKey,
@@ -166,7 +102,9 @@ export class WhenFTService {
     );
   }
 
-  resetLeague() {
+  // void
+  // Resets the WhenFT model to a specific case.
+  resetWhenFT() {
     this.#whenFT = {
       accounts: [
         { id: 0, name: 'JD', email: 'jd@when.ft', portfolio: [], coins: 0, lastSpin: 0 },
@@ -177,6 +115,8 @@ export class WhenFTService {
     this.#saveData(this.#whenFT);
   }
 
+  // void
+  // Saves localStorage to WhenFTModel.
   #loadData() {
     const json = localStorage.getItem(WhenFTService.WhenFTStorageKey);
     try {
@@ -185,10 +125,12 @@ export class WhenFTService {
         return this.#whenFT;
       }
     } catch {}
-    this.resetLeague();
+    this.resetWhenFT();
     return this.#whenFT;
   }
 
+  // Observable<Account>
+  // Creates an account and returns it.
   createAccount(createAccount: CreateAccount) {
     createAccount.name = createAccount.name.trim();
     if (createAccount.id === 0) {
@@ -212,6 +154,8 @@ export class WhenFTService {
     return of(account);
   }
 
+  // Observable<Account>
+  // Edits account referenced by id using data provided in newAccount and returns account.
   editAccount(id: number, newAccount: EditAccount) {
     newAccount.name = newAccount.name.trim();
     const account = this.#whenFT.accounts.find((account) => account.id === id);
@@ -236,13 +180,15 @@ export class WhenFTService {
     return of(account);
   }
 
+  // Observable<boolean>
+  // Deletes account referenced by id.
   deleteAccount(id: number) {
     this.#whenFT.accounts = this.#whenFT.accounts.filter((account) => account.id != id);
     this.#subject.next(this.#whenFT);
     return of(true);
   }
 
-
+  // Everything beyond can be ignored.
   
   // createPlayer(player: CreatePlayer) {
   //   player.id = player.id.trim();
@@ -453,6 +399,85 @@ export class WhenFTService {
   //       game.plays.push(newPlay);
   //       this.#subject.next(this.#league);
   //       return newPlay;
+  //     })
+  //   );
+  // }
+
+  // watchPlayStats$(id: string): Observable<Array<PlayStats>> {
+  //   return this.watchPlays$(id).pipe(
+  //     switchMap((plays) => {
+  //       if (!plays?.length) {
+  //         return of([]);
+  //       }
+  //       const playerArray = Array.from(
+  //         new Set(
+  //           plays
+  //             .map((play) => [
+  //               play.passer,
+  //               play.rusher,
+  //               play.receiver,
+  //               play.flagPuller,
+  //               play.turnoverPlayer,
+  //             ])
+  //             .flat()
+  //             .filter((playerId) => playerId)
+  //         ).values()
+  //       ).map((playerId) => this.watchPlayer$(playerId!));
+  //       const observables = [
+  //         this.watchTeam$(plays[0].offensiveTeamId),
+  //         this.watchTeam$(plays[0].defensiveTeamId),
+  //       ];
+  //       return combineLatest([
+  //         combineLatest(observables),
+  //         combineLatest(playerArray),
+  //       ]).pipe(
+  //         take(1),
+  //         map((responses) => {
+  //           const teamMap = new Map(
+  //             responses[0].map((team) => [team!.id, team!])
+  //           );
+  //           const playerMap = new Map(
+  //             responses[1].map((player) => [player!.id, player!])
+  //           );
+  //           return plays.map((play) => {
+  //             switch (play.type) {
+  //               case 'rushing':
+  //               case 'one-point-rush':
+  //               case 'two-point-rush':
+  //                 return PlayStats.createRush(
+  //                   play,
+  //                   teamMap.get(play.offensiveTeamId)!,
+  //                   teamMap.get(play.defensiveTeamId)!,
+  //                   playerMap.get(play.rusher!)!,
+  //                   play.flagPuller
+  //                     ? playerMap.get(play.flagPuller)
+  //                     : undefined,
+  //                   play.turnoverPlayer
+  //                     ? playerMap.get(play.turnoverPlayer)
+  //                     : undefined
+  //                 );
+  //               case 'passing':
+  //               case 'one-point-pass':
+  //               case 'two-point-pass':
+  //                 return PlayStats.createPass(
+  //                   play,
+  //                   teamMap.get(play.offensiveTeamId)!,
+  //                   teamMap.get(play.defensiveTeamId)!,
+  //                   playerMap.get(play.passer!)!,
+  //                   playerMap.get(play.receiver!)!,
+  //                   play.flagPuller
+  //                     ? playerMap.get(play.flagPuller)
+  //                     : undefined,
+  //                   play.turnoverPlayer
+  //                     ? playerMap.get(play.turnoverPlayer)
+  //                     : undefined
+  //                 );
+  //               default:
+  //                 throw new Error('Unsupported play type.');
+  //             }
+  //           });
+  //         })
+  //       );
   //     })
   //   );
   // }

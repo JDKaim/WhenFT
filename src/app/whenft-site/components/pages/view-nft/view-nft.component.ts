@@ -21,8 +21,6 @@ export class ViewNftComponent implements OnInit {
   #router = inject(Router);
   @Input() id!: number;
   nft$ = new Observable<NFT | undefined>();
-  // rushYardage$ = new Observable<number | undefined>();
-  // rushYardage = 0;
 
   ngOnInit(): void {
     this.nft$ = this.#whenFtService.watchNFT$(this.id);

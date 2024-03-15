@@ -1,11 +1,12 @@
 @if (nft$ | async; as nft) {
   @if (nft) {
-    <canvas width="32" height="32">
+    <svg width="16" height="16">
       @for (row of nft.rows; track $index) {
           @for (pixel of row.pixels; track $index) {
+            <rect width="1" height="1" x="2"></rect>
           }
       }
-      </canvas>
+    </svg>
   }
 } @else {
   <p-progressBar mode="indeterminate"></p-progressBar>
